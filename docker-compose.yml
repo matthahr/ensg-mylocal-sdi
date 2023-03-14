@@ -1,7 +1,6 @@
 version: '3'
 
 services:
-
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
@@ -25,11 +24,14 @@ services:
     image: geosolutionsit/geoserver:2.19.2
     container_name: geoserver
     environment:
-      - VIRTUAL_HOST=geoserver.example.com
+      - VIRTUAL_HOST=
+      - VIRTUAL_PORT=
     volumes:
       - ./geoserver_data:/opt/geoserver/data_dir
     depends_on:
       - postgres
+      - pgadmin
+      - nginx-proxy
     networks:
       - geoserver-network
 
@@ -45,6 +47,7 @@ services:
       - ./mapstore_data:/usr/share/nginx/html
     depends_on:
       - geoserver
+      - nginx-proxy
     networks:
       - geoserver-network
 
@@ -66,8 +69,11 @@ services:
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@example.com
       - PGADMIN_DEFAULT_PASSWORD=mypassword
-    ports:
-      - "5050:80"
+    expose:
+      - "80"
+    depends_on:
+      - geoserver
+      - nginx-proxy
     networks:
       - geoserver-network
 
@@ -80,6 +86,8 @@ services:
       - FILEBROWSER_USER=admin
       - FILEBROWSER_PASS=mypassword
       - FILEBROWSER_PORT=8080
+    depends_on:
+      - nginx-proxy
     networks:
       - geoserver-network
 
